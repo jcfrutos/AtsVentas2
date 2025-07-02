@@ -8,14 +8,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import anexostransaccionales.atsventas.repository.AtsVentasRepository;
 
-// Apache POI imports for Excel processing
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.util.List;
+import java.util.Optional;
 import java.util.ArrayList;
 import anexostransaccionales.atsventas.models.entities.AtsVentas;
 
@@ -35,10 +34,10 @@ public class AtsVentasServiceImpl implements AtsVentasService {
             if (fileName.endsWith(".xlsx")) {
                 return importAtsVentasFromExcel(inputStream);
             } 
-            if (fileName.endsWith(".csv")) {
-                atsVentasRepository.importAtsVentasFromCsv(inputStream);
-            } 
-            return "Formato de archivo no soportado. Use .xlsx o .csv";
+            if (fileName.endsWith(".xls")) {
+                return "Formato de archivo .xls no soportado. Use .xlsx";
+            }
+            return "Formato de archivo no soportado. Use .xlsx";
         
           
         } catch (Exception e) {
@@ -184,7 +183,7 @@ public class AtsVentasServiceImpl implements AtsVentasService {
                     case "sistema_tipo_documento":
                         sistemaTipoDocumentoIdex = i;
                         break;
- 
+                }
             }
             if (tipoIdentificacionClienteIdx == -1 || noIdentificacionClienteIdx == -1 ||
                 parteRelacionadaIdx == -1 || tipoDeClienteIdx == -1 || razonSocialClienteIdx == -1 ||
@@ -223,7 +222,7 @@ public class AtsVentasServiceImpl implements AtsVentasService {
                 atsVentas.setNoSerieComprobanteVentaEstablecimiento(getCellString(row, noSerieComprobanteVentaEstablecimientoIdx));
                 atsVentas.setNoSerieComprobanteVentaPuntoEmision(getCellString(row, noSerieComprobanteVentaPuntoEmisionIdx));
                 atsVentas.setNoSecuencialComprobanteVenta(getCellString(row, noSecuencialComprobanteVentaIdx));
-                atsVentas.setBaseImponibleNoObjetoIva(java.math.BigDecimal.valueOf(getCellDouble(row.getCell(baseImponibleNoObjetoIvaIdx))));
+                atsVentas.setBaseImponibleNoObjetoIva(java.math.BigDecimal.valueOf(getCellDouble(row, baseImponibleNoObjetoIvaIdx)));
                 atsVentas.setBaseImponibleTarifa0(getBigDecimalValue(row.getCell(baseImponibleTarifa0Idx)));
                 atsVentas.setBaseImponibleTarifaIvaDiferente0(getBigDecimalValue(row.getCell(baseImponibleTarifaIvaDiferente0Idx)));
                 atsVentas.setMontoIva(getBigDecimalValue(row.getCell(montoIvaIdx)));
@@ -254,9 +253,9 @@ public class AtsVentasServiceImpl implements AtsVentasService {
             }
             atsVentasRepository.saveAll(atsVentasList);
             return "Datos importados correctamente desde Excel";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error al procesar el archivo Excel: " + e.getMessage(); 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "Error al procesar el archivo Excel: " + ex.getMessage(); 
         }
 
     }
@@ -329,7 +328,8 @@ public class AtsVentasServiceImpl implements AtsVentasService {
     }
 
     // Helper method to get double value from a cell
-    private Double getCellDouble(Cell cell) {
+    private Double getCellDouble(Row row, int idx) {
+        Cell cell = row.getCell(idx);
         if (cell == null) {
             return 0.0;
         }
@@ -351,5 +351,68 @@ public class AtsVentasServiceImpl implements AtsVentasService {
             default:
                 return 0.0;
         }
+    }
+    @Override
+    public List<AtsVentas> findAll() {
+        return atsVentasRepository.findAll();
+    }
+    @Override
+    public Optional<AtsVentas> findById(String id) {
+        return atsVentasRepository.findById(id);
+    }
+    @Override
+    public AtsVentas create(AtsVentas atsVentas) {
+        return atsVentasRepository.save(atsVentas);
+    }
+    @Override
+    public Optional<AtsVentas> update(String id, AtsVentas atsVentas) {
+        return atsVentasRepository.findById(id)
+            .map(existingAtsVentas -> {
+                existingAtsVentas.setTipoIdentificacionCliente(atsVentas.getTipoIdentificacionCliente());
+                existingAtsVentas.setNoIdentificacionCliente(atsVentas.getNoIdentificacionCliente());
+                existingAtsVentas.setParteRelacionada(atsVentas.getParteRelacionada());
+                existingAtsVentas.setTipoDeCliente(atsVentas.getTipoDeCliente());
+                existingAtsVentas.setRazonSocialCliente(atsVentas.getRazonSocialCliente());
+                existingAtsVentas.setCodigoTipoComprobante(atsVentas.getCodigoTipoComprobante());
+                existingAtsVentas.setTipoDeEmision(atsVentas.getTipoDeEmision());
+                existingAtsVentas.setNoSerieComprobanteVentaEstablecimiento(atsVentas.getNoSerieComprobanteVentaEstablecimiento());
+                existingAtsVentas.setNoSerieComprobanteVentaPuntoEmision(atsVentas.getNoSerieComprobanteVentaPuntoEmision());
+                existingAtsVentas.setNoSecuencialComprobanteVenta(atsVentas.getNoSecuencialComprobanteVenta());
+                existingAtsVentas.setBaseImponibleNoObjetoIva(atsVentas.getBaseImponibleNoObjetoIva());
+                existingAtsVentas.setBaseImponibleTarifa0(atsVentas.getBaseImponibleTarifa0());
+                existingAtsVentas.setBaseImponibleTarifaIvaDiferente0(atsVentas.getBaseImponibleTarifaIvaDiferente0());
+                existingAtsVentas.setMontoIva(atsVentas.getMontoIva());
+                existingAtsVentas.setTipoDeCompensaciones(atsVentas.getTipoDeCompensaciones());
+                existingAtsVentas.setMontoDeCompensaciones(atsVentas.getMontoDeCompensaciones());
+                existingAtsVentas.setMontoIce(atsVentas.getMontoIce());
+                existingAtsVentas.setValorIvaRetenido(atsVentas.getValorIvaRetenido());
+                existingAtsVentas.setValorRentaRetenido(atsVentas.getValorRentaRetenido());
+                existingAtsVentas.setFormaDeCobro(atsVentas.getFormaDeCobro());
+                existingAtsVentas.setCodigoDelEstablecimiento(atsVentas.getCodigoDelEstablecimiento());
+                existingAtsVentas.setVentasGeneradasEnElEstablecimiento(atsVentas.getVentasGeneradasEnElEstablecimiento());
+                existingAtsVentas.setIvaCompensadoEnElEstablecimientoPorVentasLeyDeSolidaridad(atsVentas.getIvaCompensadoEnElEstablecimientoPorVentasLeyDeSolidaridad());
+                existingAtsVentas.setUsuario(atsVentas.getUsuario());
+                existingAtsVentas.setFecha(atsVentas.getFecha());
+                existingAtsVentas.setDescripcion(atsVentas.getDescripcion());
+                existingAtsVentas.setDetalle(atsVentas.getDetalle());
+                existingAtsVentas.setUsuario2(atsVentas.getUsuario2());
+                existingAtsVentas.setCCostos(atsVentas.getCCostos());
+                existingAtsVentas.setIBeneficiario(atsVentas.getIBeneficiario());
+                existingAtsVentas.setCuentaIvaBase(atsVentas.getCuentaIvaBase());
+                existingAtsVentas.setCuentaIngresoBase(atsVentas.getCuentaIngresoBase());
+                existingAtsVentas.setFormularioBaseImponible15(atsVentas.getFormularioBaseImponible15());
+                existingAtsVentas.setCuentaIva(atsVentas.getCuentaIva());
+                existingAtsVentas.setCuentaIngreso(atsVentas.getCuentaIngreso());
+                existingAtsVentas.setSistemaTipoDocumento(atsVentas.getSistemaTipoDocumento());
+
+                return atsVentasRepository.save(atsVentas);
+            });
+    }
+    @Override
+    public boolean delete(String id) {
+        if (!atsVentasRepository.existsById(id)) 
+            return false;
+        atsVentasRepository.deleteById(id);
+        return true;
     }
 }
