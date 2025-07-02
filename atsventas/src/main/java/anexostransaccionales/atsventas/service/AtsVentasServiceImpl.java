@@ -30,36 +30,10 @@ public class AtsVentasServiceImpl implements AtsVentasService {
         String fileName = file .getOriginalFilename();
         if (fileName == null) {
             return "El archivo no es válido";
-            /**
-             * Helper method to extract a String value from a Cell.
-             */
-            private String getCellValue(Cell cell) {
-                if (cell == null) {
-                    return "";
-                }
-                switch (cell.getCellType()) {
-                    case STRING:
-                        return cell.getStringCellValue();
-                    case NUMERIC:
-                        return String.valueOf(cell.getNumericCellValue());
-                    case BOOLEAN:
-                        return String.valueOf(cell.getBooleanCellValue());
-                    case FORMULA:
-                        try {
-                            return cell.getStringCellValue();
-                        } catch (IllegalStateException e) {
-                            return String.valueOf(cell.getNumericCellValue());
-                        }
-                    case BLANK:
-                    case ERROR:
-                    default:
-                        return "";
-                }
-            }
         }
         try {InputStream inputStream = file.getInputStream();
             if (fileName.endsWith(".xlsx")) {
-                atsVentasRepository.importAtsVentasFromExcel(inputStream);
+                return importAtsVentasFromExcel(inputStream);
             } 
             if (fileName.endsWith(".csv")) {
                 atsVentasRepository.importAtsVentasFromCsv(inputStream);
@@ -229,6 +203,7 @@ public class AtsVentasServiceImpl implements AtsVentasService {
                 detalleIdx == -1 || usuario2Idx == -1 || cCostosIdx == -1 ||
                 iBeneficiarioIdx == -1 || cuentaIvaBaseIdx == -1 ||
                 cuentaIngresoBaseIdx == -1 || formularioBaseImponible15Idx == -1 ||
+                cuentaIvaIdx == -1 || cuentaIngresoIdx == -1 || sistemaTipoDocumentoIdex == -1) {
                 return "Faltan columnas requeridas en la hoja de cálculo";
             }
             List<AtsVentas> atsVentasList = new ArrayList<>();
@@ -238,42 +213,43 @@ public class AtsVentasServiceImpl implements AtsVentasService {
                     continue; // Skip empty rows
                 }
                 AtsVentas atsVentas = new AtsVentas();
-                atsVentas.setTipoIdentificacionCliente(getCellValue(row.getCell(tipoIdentificacionClienteIdx)));
-                atsVentas.setNoIdentificacionCliente(getCellValue(row.getCell(noIdentificacionClienteIdx)));
-                atsVentas.setParteRelacionada(getCellValue(row.getCell(parteRelacionadaIdx)));
-                atsVentas.setTipoDeCliente(getCellValue(row.getCell(tipoDeClienteIdx)));
-                atsVentas.setRazonSocialCliente(getCellValue(row.getCell(razonSocialClienteIdx)));
-                atsVentas.setCodigoTipoComprobante(getCellValue(row.getCell(codigoTipoComprobanteIdx)));
-                atsVentas.setTipoDeEmision(getCellValue(row.getCell(tipoDeEmisionIdx)));
-                atsVentas.setNoSerieComprobanteVentaEstablecimiento(getCellValue(row.getCell(noSerieComprobanteVentaEstablecimientoIdx)));
-                atsVentas.setNoSerieComprobanteVentaPuntoEmision(getCellValue(row.getCell(noSerieComprobanteVentaPuntoEmisionIdx)));
-                atsVentas.setNoSecuencialComprobanteVenta(getCellValue(row.getCell(noSecuencialComprobanteVentaIdx)));
-                atsVentas.setBaseImponibleNoObjetoIva(getBigDecimalValue(row.getCell(baseImponibleNoObjetoIvaIdx)));
+                atsVentas.setTipoIdentificacionCliente(getCellString(row, tipoIdentificacionClienteIdx));
+                atsVentas.setNoIdentificacionCliente(getCellString(row, noIdentificacionClienteIdx));
+                atsVentas.setParteRelacionada(getCellString(row, parteRelacionadaIdx));
+                atsVentas.setTipoDeCliente(getCellString(row, tipoDeClienteIdx));
+                atsVentas.setRazonSocialCliente(getCellString(row, razonSocialClienteIdx));
+                atsVentas.setCodigoTipoComprobante(getCellString(row, codigoTipoComprobanteIdx));
+                atsVentas.setTipoDeEmision(getCellString(row, tipoDeEmisionIdx));
+                atsVentas.setNoSerieComprobanteVentaEstablecimiento(getCellString(row, noSerieComprobanteVentaEstablecimientoIdx));
+                atsVentas.setNoSerieComprobanteVentaPuntoEmision(getCellString(row, noSerieComprobanteVentaPuntoEmisionIdx));
+                atsVentas.setNoSecuencialComprobanteVenta(getCellString(row, noSecuencialComprobanteVentaIdx));
+                atsVentas.setBaseImponibleNoObjetoIva(java.math.BigDecimal.valueOf(getCellDouble(row.getCell(baseImponibleNoObjetoIvaIdx))));
                 atsVentas.setBaseImponibleTarifa0(getBigDecimalValue(row.getCell(baseImponibleTarifa0Idx)));
                 atsVentas.setBaseImponibleTarifaIvaDiferente0(getBigDecimalValue(row.getCell(baseImponibleTarifaIvaDiferente0Idx)));
                 atsVentas.setMontoIva(getBigDecimalValue(row.getCell(montoIvaIdx)));
-                atsVentas.setTipoDeCompensaciones(getCellValue(row.getCell(tipoDeCompensacionesIdx)));
+                atsVentas.setTipoDeCompensaciones(getCellString(row, tipoDeCompensacionesIdx));
                 atsVentas.setMontoDeCompensaciones(getBigDecimalValue(row.getCell(montoDeCompensacionesIdx)));
                 atsVentas.setMontoIce(getBigDecimalValue(row.getCell(montoIceIdx)));
                 atsVentas.setValorIvaRetenido(getBigDecimalValue(row.getCell(valorIvaRetenidoIdx)));
                 atsVentas.setValorRentaRetenido(getBigDecimalValue(row.getCell(valorRentaRetenidoIdx)));
-                atsVentas.setFormaDeCobro(getCellValue(row.getCell(formaDeCobroIdx)));
-                atsVentas.setCodigoDelEstablecimiento(getCellValue(row.getCell(codigoDelEstablecimientoIdx)));
+                atsVentas.setFormaDeCobro(getCellString(row, formaDeCobroIdx));
+                atsVentas.setCodigoDelEstablecimiento(getCellString(row, codigoDelEstablecimientoIdx));
                 atsVentas.setVentasGeneradasEnElEstablecimiento(getBigDecimalValue(row.getCell(ventasGeneradasEnElEstablecimientoIdx)));
                 atsVentas.setIvaCompensadoEnElEstablecimientoPorVentasLeyDeSolidaridad(getBigDecimalValue(row.getCell(ivaCompensadoEnElEstablecimientoPorVentasLeyDeSolidaridadIdx)));
-                atsVentas.setUsuario(getCellValue(row.getCell(usuarioIdx)));
-                atsVentas.setFecha(getDateValue(row.getCell(fechaIdx)));
-                atsVentas.setDescripcion(getCellValue(row.getCell(descripcionIdx)));
-                atsVentas.setDetalle(getCellValue(row.getCell(detalleIdx)));
-                atsVentas.setUsuario2(getCellValue(row.getCell(usuario2Idx)));
-                atsVentas.setCCostos(getCellValue(row.getCell(cCostosIdx)));
-                atsVentas.setIBeneficiario(getCellValue(row.getCell(iBeneficiarioIdx)));
-                atsVentas.setCuentaIvaBase(getCellValue(row.getCell(cuentaIvaBaseIdx)));
-                atsVentas.setCuentaIngresoBase(getCellValue(row.getCell(cuentaIngresoBaseIdx)));
-                atsVentas.setFormularioBaseImponible15(getCellValue(row.getCell(formularioBaseImponible15Idx)));
-                atsVentas.setCuentaIva(getCellValue(row.getCell(cuentaIvaIdx)));
-                atsVentas.setCuentaIngreso(getCellValue(row.getCell(cuentaIngresoIdx)));
-                atsVentas.setSistemaTipoDocumento(getCellValue(row.getCell(sistemaTipoDocumentoIdex)));
+                atsVentas.setUsuario(getCellString(row, usuarioIdx));
+                java.util.Date fechaDate = getDateValue(row.getCell(fechaIdx));
+                atsVentas.setFecha(fechaDate == null ? null : fechaDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
+                atsVentas.setDescripcion(getCellString(row, descripcionIdx));
+                atsVentas.setDetalle(getCellString(row, detalleIdx));
+                atsVentas.setUsuario2(getCellString(row, usuario2Idx));
+                atsVentas.setCCostos(getCellString(row, cCostosIdx));
+                atsVentas.setIBeneficiario(getCellString(row, iBeneficiarioIdx));
+                atsVentas.setCuentaIvaBase(getCellString(row, cuentaIvaBaseIdx));
+                atsVentas.setCuentaIngresoBase(getCellString(row, cuentaIngresoBaseIdx));
+                atsVentas.setFormularioBaseImponible15(getCellString(row, formularioBaseImponible15Idx));
+                atsVentas.setCuentaIva(getCellString(row, cuentaIvaIdx));
+                atsVentas.setCuentaIngreso(getCellString(row, cuentaIngresoIdx));
+                atsVentas.setSistemaTipoDocumento(getCellString(row, sistemaTipoDocumentoIdex));
                 atsVentasList.add(atsVentas);
             }
             atsVentasRepository.saveAll(atsVentasList);
@@ -303,5 +279,77 @@ public class AtsVentasServiceImpl implements AtsVentasService {
                 return "";
         }
         
+    }
+
+    private java.math.BigDecimal getBigDecimalValue(Cell cell) {
+        if (cell == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return java.math.BigDecimal.valueOf(cell.getNumericCellValue());
+            case STRING:
+                try {
+                    return new java.math.BigDecimal(cell.getStringCellValue().trim());
+                } catch (NumberFormatException e) {
+                    return java.math.BigDecimal.ZERO;
+                }
+            case FORMULA:
+                try {
+                    return java.math.BigDecimal.valueOf(cell.getNumericCellValue());
+                } catch (Exception e) {
+                    return java.math.BigDecimal.ZERO;
+                }
+            default:
+                return java.math.BigDecimal.ZERO;
+        }
+    }
+
+    private java.util.Date getDateValue(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue();
+                } else {
+                    return null;
+                }
+            case STRING:
+                try {
+                    // Try parsing as yyyy-MM-dd or similar
+                    return java.sql.Date.valueOf(cell.getStringCellValue().trim());
+                } catch (Exception e) {
+                    return null;
+                }
+            default:
+                return null;
+        }
+    }
+
+    // Helper method to get double value from a cell
+    private Double getCellDouble(Cell cell) {
+        if (cell == null) {
+            return 0.0;
+        }
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return cell.getNumericCellValue();
+            case STRING:
+                try {
+                    return Double.parseDouble(cell.getStringCellValue().trim());
+                } catch (NumberFormatException e) {
+                    return 0.0;
+                }
+            case FORMULA:
+                try {
+                    return cell.getNumericCellValue();
+                } catch (Exception e) {
+                    return 0.0;
+                }
+            default:
+                return 0.0;
+        }
     }
 }
