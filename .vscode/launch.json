@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AtsventasApplication<atsventas>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "anexostransaccionales.atsventas.AtsventasApplication",
+            "projectName": "atsventas",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
