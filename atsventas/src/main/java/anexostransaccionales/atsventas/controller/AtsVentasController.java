@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import anexostransaccionales.atsventas.models.entities.AtsVentas;
 import anexostransaccionales.atsventas.service.AtsVentasService;
+import anexostransaccionales.atsventas.service.EmailService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,9 @@ public class AtsVentasController {
     @Autowired
     private AtsVentasService atsVentasService;
 
+    @Autowired
+    private EmailService emailService;
+
     @PostMapping("/import")
     public ResponseEntity<?> importAtsVentas(@RequestParam("file") MultipartFile file) {
         String result = atsVentasService.importAtsVentasFromFile(file);
@@ -36,6 +40,12 @@ public class AtsVentasController {
 
     @GetMapping
     public ResponseEntity<List<AtsVentas>> getAllAtsVentas() {
+        emailService.enviarCorreo(
+            "jcfrutos@utpl.edu.ec",
+            "AtsVentas - Consulta de datos",
+            "Se ha realizado una consulta a los datos de AtsVentas."
+        );
+            
         return ResponseEntity.ok(atsVentasService.findAll());
     }
 
@@ -66,4 +76,6 @@ public class AtsVentasController {
         }
         return ResponseEntity.notFound().build();
     }
+
+
 }
