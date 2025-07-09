@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/atsventas")
-public class AtsController {
+public class AtsVentasController {
     @Autowired
     private AtsVentasService atsVentasService;
 
