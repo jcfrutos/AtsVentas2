@@ -48,7 +48,7 @@ public class AtsVentasServiceImpl implements AtsVentasService {
 
     private String importAtsVentasFromExcel(InputStream inputStream) {
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
-            Sheet sheet = workbook.getSheetAt(1);
+            Sheet sheet = workbook.getSheetAt(0);
             if (sheet == null) {
                 return "La hoja de cálculo está vacía";
             }

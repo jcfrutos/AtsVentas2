@@ -36,7 +36,7 @@ public class AtsVentasController {
         this.emailService = emailService;
     }
 
-    @Autowired
+    
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, path = "/import")
     @Operation(
         summary = "Permite importar un archivo XLSX de ATS Ventas",
