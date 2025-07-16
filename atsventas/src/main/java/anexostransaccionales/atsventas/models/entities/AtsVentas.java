@@ -1,4 +1,5 @@
 package anexostransaccionales.atsventas.models.entities;
+import org.springframework.data.annotation.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -52,4 +53,7 @@ public class AtsVentas {
     private String cuentaIngreso; // VARCHAR(50)
     private String sistema; // VARCHAR(1)
     private String sistemaTipoDocumento; // VARCHAR(3)
+
+    @Transient
+    private int port;
 }

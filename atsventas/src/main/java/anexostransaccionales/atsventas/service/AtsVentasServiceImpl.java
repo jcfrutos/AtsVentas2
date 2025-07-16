@@ -3,6 +3,8 @@ package anexostransaccionales.atsventas.service;
 import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties.Env;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,14 +17,23 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import anexostransaccionales.atsventas.models.entities.AtsVentas;
 
 @Service
 public class AtsVentasServiceImpl implements AtsVentasService {
 
-    @Autowired
     private AtsVentasRepository atsVentasRepository;
+    private Environment environment;
+
+    public AtsVentasServiceImpl(AtsVentasRepository atsVentasRepository, Environment environment) {
+        this.atsVentasRepository = atsVentasRepository;
+        this.environment = environment;
+    }
+
+
 
     @Override
     public String importAtsVentasFromFile(MultipartFile file) {
@@ -354,8 +365,12 @@ public class AtsVentasServiceImpl implements AtsVentasService {
     }
     @Override
     public List<AtsVentas> findAll() {
-        return atsVentasRepository.findAll();
+        return (atsVentasRepository.findAll().stream().map(atsventas -> {
+            atsventas.setPort(Integer.parseInt(environment.getProperty("local.server.port")));
+            return atsventas;
+        }).collect(Collectors.toList()));
     }
+    
     @Override
     public Optional<AtsVentas> findById(String id) {
         return atsVentasRepository.findById(id);
