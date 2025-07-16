@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import anexostransaccionales.atsventas.models.entities.AtsVentas;
 import anexostransaccionales.atsventas.service.AtsVentasService;
 import anexostransaccionales.atsventas.service.EmailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/atsventas")
+@Tag(name = "ApiTributario", description = "encargador de manejar temas tributarios")
 public class AtsVentasController {
     @Autowired
     private AtsVentasService atsVentasService;
@@ -30,6 +33,9 @@ public class AtsVentasController {
     private EmailService emailService;
 
     @PostMapping("/import")
+    @Operation(summary = "Permite importar un archivo XML de ATS Ventas",
+               description = "Este endpoint permite importar un archivo XML que contiene datos de ATS Ventas. "
+                           + "El archivo debe contener un solo nodo raíz para ser procesado correctamente.")
     public ResponseEntity<?> importAtsVentas(@RequestParam("file") MultipartFile file) {
         String result = atsVentasService.importAtsVentasFromFile(file);
         if (result.startsWith("el archivo xml debe contener un solo nodo")) {
