@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/atsventas")
+@RequestMapping()
 public class AtsVentasController {
 
     private final EmailService emailService;
