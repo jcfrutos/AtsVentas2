@@ -1,0 +1,8 @@
+spring:
+    cloud:
+        gateway:
+            routes:
+                - id: atsventas
+                  uri: lb://atsventas
+                  predicates:
+                    - Path=/atsventas/**
