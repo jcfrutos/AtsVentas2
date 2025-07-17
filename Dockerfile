@@ -24,7 +24,7 @@ RUN ./mvnw clean package -DskipTests
 
 FROM openjdk:21-jdk
 
-VOLUME /tmp
+# VOLUME /tmp
 
 # Copy the JAR from the build stage
 
